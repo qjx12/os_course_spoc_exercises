@@ -60,8 +60,11 @@
  
 ## 3.5 ucore系统调用分析
  1. ucore的系统调用中参数传递代码分析。
+    答：在每次系统调用时，中断帧trapframe从tf_regs里面存储的edi，esi，ebx，ecx，edx等寄存器值来获取参数。系统调用号放到EAX，即最多用edx/ecx/ebx/edi/esi/eax6个寄存器来传递系统调用的参数，系统调用的返回结果是EAX。
  1. ucore的系统调用中返回结果的传递代码分析。
- 1. 以ucore lab8的answer为例，分析ucore 应用的系统调用编写和含义。
+    答：在内核态中，系统通过trapframe中的tf_regs.reg_eax调用返回值进行传递，如：tf->tf_regs.reg_eax = syscalls[num](arg);最后在用户态的syscall函数中通过eax寄存器返回。
+ 1. 以ucore lab8的answer为例，分析ucore应用的系统调用编写和含义。
+    答：getpid()函数是ulib.c中经过包装的系统调用，getpid()调用用户态syscall.c中的sys_getpid()函数，sys_getpid()调用用户态的syscall(int,...)函数，用户态的syscall(int,...)函数通过asm volatile机制将参数传入内核态，在内核态中参数通过trapframe进行传递，最后传递到内核态的syscall（）函数中，内核态的syscall()函数根据系统调用类型调用sys_getpid(int)函数，返回值写入eax寄存器中， 返回到用户态时，返回值从eax寄存器中读出。
  1. 以ucore lab8的answer为例，尝试修改并运行ucore OS kernel代码，使其具有类似Linux应用工具`strace`的功能，即能够显示出应用程序发出的系统调用，从而可以分析ucore应用的系统调用执行过程。
  
 ## 3.6 请分析函数调用和系统调用的区别
